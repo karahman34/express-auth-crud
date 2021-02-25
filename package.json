@@ -1,5 +1,5 @@
 {
-  "name": "express-crud",
+  "name": "express-auth-crud",
   "version": "0.0.0",
   "private": true,
   "scripts": {
