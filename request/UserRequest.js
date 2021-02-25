@@ -1,6 +1,7 @@
 const Joi = require('joi');
 const { Op } = require('sequelize');
 const { User } = require('../models');
+const { removeUploadedFile } = require('../helpers/upload');
 
 const uniqueUsername = async (req) => {
   const where = { username: req.body.username };
@@ -36,7 +37,7 @@ const uniqueEmail = async (req) => {
   return null;
 };
 
-module.exports = async (req, res, next) => {
+async function validateJoi(req) {
   const schema = Joi.object({
     username: Joi
       .string()
@@ -58,21 +59,32 @@ module.exports = async (req, res, next) => {
     abortEarly: false,
   });
 
+  return error;
+}
+
+module.exports = async (req, res, next) => {
+  const additionalError = {};
+  if (req.multerError) {
+    additionalError.avatar = req.multerError;
+  }
+
+  const error = await validateJoi(req);
   if (error) {
-    return res.transformer.validationError(error);
+    removeUploadedFile(req);
+    return res.transformer.validationError(error, additionalError);
   }
 
   const [uniqueEmailResult, uniqueUsernameResult] = await Promise.all([
     uniqueEmail(req), uniqueUsername(req),
   ]);
-  const additionalError = {};
 
   if (uniqueEmailResult) additionalError.email = uniqueEmailResult;
   if (uniqueUsernameResult) additionalError.username = uniqueUsernameResult;
 
-  if (!error && !Object.keys(additionalError).length) {
-    return next();
+  if (Object.keys(additionalError).length || error) {
+    removeUploadedFile(req);
+    return res.transformer.validationError(error, additionalError);
   }
 
-  return res.transformer.validationError(error, additionalError);
+  return next();
 };

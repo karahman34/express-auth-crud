@@ -1,6 +1,11 @@
+const fs = require('fs');
 const { User } = require('../models');
 const UserResource = require('../transformer/UserResource');
 const UsersCollection = require('../transformer/UsersCollection');
+
+function removeAvatar(avatar) {
+  fs.unlinkSync(`./public/${avatar}`);
+}
 
 const UserController = {
   async index(req, res) {
@@ -19,6 +24,7 @@ const UserController = {
     try {
       const { username, email, password } = req.body;
       const user = await User.create({
+        avatar: `avatars/${req.file.filename}`,
         username,
         email,
         password: User.hashPassword(password),
@@ -37,7 +43,12 @@ const UserController = {
         },
       });
 
+      if (user.avatar !== null) {
+        removeAvatar(user.avatar);
+      }
+
       const { email, username, password } = req.body;
+      user.avatar = `avatars/${req.file.filename}`;
       user.email = email;
       user.username = username;
       user.password = User.hashPassword(password);
@@ -58,6 +69,10 @@ const UserController = {
 
       if (!user) {
         return res.transformer.fail('User not found.', null, 404);
+      }
+
+      if (user.avatar !== null) {
+        removeAvatar(user.avatar);
       }
 
       user.destroy();
