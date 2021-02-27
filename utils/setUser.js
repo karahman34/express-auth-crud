@@ -11,7 +11,7 @@ module.exports = async (req) => {
   // Get the user.
   const user = await User.findOne({
     where: {
-      id: dataToken.id,
+      id: dataToken.jti,
     },
   });
 

@@ -36,7 +36,7 @@ module.exports = (sequelize, DataTypes) => {
   User.comparePassword = (password, hashedPassword) => bcrypt.compareSync(password, hashedPassword);
 
   User.generateToken = (user) => jwt.sign({
-    id: user.id,
+    jti: user.id,
   }, process.env.APP_KEY, { expiresIn: '7 days' });
 
   User.validateToken = (token) => jwt.verify(token, process.env.APP_KEY);
