@@ -43,12 +43,16 @@ const UserController = {
         },
       });
 
-      if (user.avatar !== null) {
-        removeAvatar(user.avatar);
+      const avatarFile = req.file;
+      if (avatarFile) {
+        if (user.avatar !== null) {
+          removeAvatar(user.avatar);
+        }
+
+        user.avatar = `avatars/${avatarFile.filename}`;
       }
 
       const { email, username, password } = req.body;
-      user.avatar = `avatars/${req.file.filename}`;
       user.email = email;
       user.username = username;
       user.password = User.hashPassword(password);
