@@ -64,6 +64,11 @@ async function validateJoi(req) {
 
 module.exports = async (req, res, next) => {
   const additionalError = {};
+
+  if (!req.file) {
+    additionalError.avatar = 'Avatar is required';
+  }
+
   if (req.multerError) {
     additionalError.avatar = req.multerError;
   }
